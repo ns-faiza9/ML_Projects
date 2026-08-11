@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "workspace": {
+    "name": "EDA",
+    "createdAt": 1786430510215,
+    "preset": "starter"
+  },
+  "authorizedRoots": [
+    "C:\\Users\\nsfai\\OneDrive\\Desktop\\WORK\\STUDIES\\SEMESTER - 4\\ML\\PROJECTS\\EDA"
+  ],
+  "reload": null
+}

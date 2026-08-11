@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Placement Prediction Project</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="topbar">
+    <h1>Placement Prediction Project</h1>
+</header>
+
+<div class="layout">
+    <!-- Left panel -->
+    <nav class="sidebar">
+        <ul>
+            <li>
+                <a href="{{ url_for('data_loading') }}"
+                   class="menu-item {% if active == 'data-loading' %}active{% endif %}">
+                    Data Loading
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('eda_page') }}"
+                   class="menu-item {% if active == 'eda' %}active{% endif %}">
+                    EDA
+                </a>
+            </li>
+            <li class="menu-item disabled">Preprocessing (coming soon)</li>
+            <li class="menu-item disabled">Model Training (coming soon)</li>
+            <li class="menu-item disabled">Prediction (coming soon)</li>
+        </ul>
+    </nav>
+
+    <!-- Main content -->
+    <main class="content">
+        <h2>Data Loading</h2>
+
+        <button id="load-data-btn" type="button">Load Data</button>
+        <div id="loading-spinner" class="hidden">Loading dataset...</div>
+        <div id="data-container"></div>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+
+        {% if summary %}
+            <table class="summary-table">
+                <tr><td>Rows</td><td>{{ summary.n_rows }}</td></tr>
+                <tr><td>Columns</td><td>{{ summary.n_cols }}</td></tr>
+                <tr><td>Duplicate rows</td><td>{{ summary.duplicate_count }}</td></tr>
+            </table>
+
+            {% if summary.missing %}
+                <h3>Missing Values</h3>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Column</th><th>Missing Count</th></tr>
+                        </thead>
+                        <tbody>
+                        {% for col, count in summary.missing.items() %}
+                            <tr><td>{{ col }}</td><td>{{ count }}</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+
+            <h3>Placement Status Counts</h3>
+            <table class="summary-table">
+                {% for status, count in summary.target_counts.items() %}
+                <tr><td>{{ status }}</td><td>{{ count }}</td></tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+    </main>
+</div>
+
+<script>
+const loadBtn = document.getElementById("load-data-btn");
+const spinner = document.getElementById("loading-spinner");
+const container = document.getElementById("data-container");
+
+loadBtn.addEventListener("click", async () => {
+    loadBtn.disabled = true;
+    spinner.classList.remove("hidden");
+    container.innerHTML = "";
+    try {
+        const res = await fetch("{{ url_for('data_table') }}");
+        if (!res.ok) throw new Error("server returned status " + res.status);
+        const html = await res.text();
+        container.innerHTML = '<div class="table-wrapper">' + html + "</div>";
+        const nRows = container.querySelectorAll("tbody tr").length;
+        const nCols = container.querySelectorAll("thead th").length;
+        spinner.textContent =
+            "Loaded " + nRows.toLocaleString() + " rows × " + nCols + " columns";
+    } catch (err) {
+        container.innerHTML =
+            '<div class="error">Failed to load data: ' + err.message + "</div>";
+    } finally {
+        loadBtn.disabled = false;
+        spinner.classList.remove("hidden");
+        spinner.style.color = "#2e7d32";
+        setTimeout(() => { spinner.classList.add("hidden"); }, 4000);
+    }
+});
+</script>
+
+</body>
+</html>
